@@ -16,6 +16,14 @@ pipeline {
                 sh 'pytest'
             }
         }
+    stage('SAST Scan') {
+    steps {
+        sh 'sonar-scanner'
+    }
+}
+
+
+        
         stage('SCA Scan') {
             steps {
                 sh 'dependency-check.sh --project "TP-Jenkins" --scan . --format HTML'
