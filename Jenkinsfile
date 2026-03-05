@@ -4,9 +4,11 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/user/project.git'
-            }
-        }
+        git branch: 'main', 
+            url: 'https://github.com/user/project.git',
+            credentialsId: 'github-token'
+    }
+}
 
         stage('Install Dependencies') {
             steps {
