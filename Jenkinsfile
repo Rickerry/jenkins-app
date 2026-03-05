@@ -2,11 +2,11 @@ pipeline {
     agent any
 
     stages {
-        stage('Clone Repository') {
+      stage('Clone Repository') {
             steps {
-        git branch: 'main', 
-            url: 'https://github.com/user/project.git',
-            credentialsId: 'github-token'
+                 git branch: 'main', 
+                    url: 'https://github.com/user/project.git',
+                    credentialsId: 'github-token'
     }
 }
 
