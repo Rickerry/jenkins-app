@@ -5,7 +5,7 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 git branch: 'main', 
-                    url: 'https://github.com/Rickerry/jenkins-app.git', // Vérifie que c'est la bonne URL
+                    url: 'https://github.com/Rickerry/jenkins-app.git',
                     credentialsId: 'github-token'
             }
         }
@@ -38,12 +38,13 @@ pipeline {
         stage('SCA Scan') {
             steps {
                 sh '''
-                    dependency-check.sh \
-                      --project "TP-Jenkins" \
-                      --scan . \
-                      --format HTML \
-                      --failOnCVSS 7 \
-                      --out reports
+                dependency-check.sh \\
+                  --project "TP-Jenkins" \\
+                  --scan . \\
+                  --format HTML \\
+                  --failOnCVSS 7 \\
+                  --out reports \\
+                  --purge
                 '''
             }
             post {
