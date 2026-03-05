@@ -1,12 +1,11 @@
 pipeline {
     agent any
 
-    stages {
-        stage('Clone Repository') {
-            steps {
-                git 'https://github.com/user/project.git'
-            }
-        }
+    stage('Clone Repository') {
+    steps {
+        git branch: 'main', url: 'https://github.com/user/project.git'
+    }
+}
 
         stage('Install Dependencies') {
             steps {
