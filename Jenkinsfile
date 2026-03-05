@@ -43,13 +43,17 @@ pipeline {
                   --scan . \\
                   --format HTML \\
                   --failOnCVSS 7 \\
-                  --out reports \\
-                  --purge
+                  --out reports
                 '''
             }
             post {
                 always {
                     archiveArtifacts artifacts: 'reports/dependency-check-report.html', fingerprint: true
+                    publishHTML([
+                        reportDir: 'reports',
+                        reportFiles: 'dependency-check-report.html',
+                        reportName: 'OWASP Dependency-Check Report'
+                    ])
                 }
             }
         }
@@ -57,10 +61,10 @@ pipeline {
 
     post {
         failure {
-            echo 'Le pipeline a échoué !'
+            echo '❌ Le pipeline a échoué !'
         }
         success {
-            echo 'Pipeline exécuté avec succès !'
+            echo '✅ Pipeline exécuté avec succès !'
         }
     }
 }
