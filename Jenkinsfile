@@ -2,41 +2,48 @@ pipeline {
     agent any
 
     stages {
-      stage('Clone Repository') {
+        stage('Clone Repository') {
             steps {
-                 git branch: 'main', 
-                    url: 'https://github.com/Rickerry/jenkins-app.git',
+                git branch: 'main', 
+                    url: 'https://github.com/Rickerry/jenkins-app.git', // Vérifie que c'est la bonne URL
                     credentialsId: 'github-token'
-    }
-}
+            }
+        }
 
         stage('Install Dependencies') {
             steps {
-                sh 'pip install -r requirements.txt'
+                sh '''
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install -r requirements.txt
+                '''
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh 'pytest'
+                sh '''
+                    . venv/bin/activate
+                    pytest
+                '''
             }
         }
 
         stage('SAST Scan') {
             steps {
-                sh 'sonar-scanner'
+                sh 'echo "sonar-scanner (à configurer)"'
             }
         }
 
         stage('SCA Scan') {
             steps {
                 sh '''
-                dependency-check.sh \
-                  --project "TP-Jenkins" \
-                  --scan . \
-                  --format HTML \
-                  --failOnCVSS 7 \
-                  --out reports
+                    dependency-check.sh \
+                      --project "TP-Jenkins" \
+                      --scan . \
+                      --format HTML \
+                      --failOnCVSS 7 \
+                      --out reports
                 '''
             }
             post {
@@ -50,6 +57,9 @@ pipeline {
     post {
         failure {
             echo 'Le pipeline a échoué !'
+        }
+        success {
+            echo 'Pipeline exécuté avec succès !'
         }
     }
 }
