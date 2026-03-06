@@ -38,33 +38,41 @@ pipeline {
         stage('SCA Scan') {
             steps {
                 sh '''
-                    # Créer le dossier reports
+                    # Nettoyer l'ancien dossier reports
+                    rm -rf reports
                     mkdir -p reports
                     
-                    # Lancer OWASP Dependency-Check avec purge (pour réinitialiser la base)
+                    # Forcer la sortie détaillée pour voir l'erreur
                     /usr/local/bin/dependency-check.sh \\
                         --project "TP-Jenkins" \\
                         --scan . \\
                         --format HTML \\
                         --failOnCVSS 7 \\
                         --out reports \\
-                        --purge
+                        --data /opt/dependency-check-final/data \\
+                        --purge 2>&1 | tee dependency-check.log
+                    
+                    # Afficher le log pour debug
+                    cat dependency-check.log
                 '''
             }
             post {
                 always {
-                    // Publier le rapport HTML
+                    // Publier le rapport HTML s'il existe
                     publishHTML([
                         reportDir: 'reports',
                         reportFiles: 'dependency-check-report.html',
                         reportName: 'OWASP Dependency-Check Report',
                         keepAll: true,
                         alwaysLinkToLastBuild: true,
-                        allowMissing: false
+                        allowMissing: true
                     ])
                     
-                    // Archiver le rapport
-                    archiveArtifacts artifacts: 'reports/dependency-check-report.html', fingerprint: true
+                    // Archiver le rapport s'il existe
+                    archiveArtifacts artifacts: 'reports/dependency-check-report.html', fingerprint: true, allowEmptyArchive: true
+                    
+                    // Archiver le log de debug
+                    archiveArtifacts artifacts: 'dependency-check.log', fingerprint: true, allowEmptyArchive: true
                 }
             }
         }
