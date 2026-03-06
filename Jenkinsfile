@@ -31,13 +31,15 @@ pipeline {
 
         stage('SAST Scan') {
             steps {
-                // Désactivé temporairement - à configurer avec SonarQube plus tard
                 sh 'echo "SAST Scan désactivé - installation de SonarQube requise"'
             }
         }
 
         stage('SCA Scan') {
             steps {
+                // Créer le dossier reports avant l'analyse
+                sh 'mkdir -p reports'
+                
                 dependencyCheck odcInstallation: 'DP-Check',
                     additionalArguments: '''
                         --project "TP-Jenkins"
