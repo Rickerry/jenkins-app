@@ -37,21 +37,22 @@ pipeline {
 
         stage('SCA Scan') {
             steps {
-                // Créer le dossier reports avant l'analyse
-                sh 'mkdir -p reports'
-                
-                dependencyCheck odcInstallation: 'DP-Check',
-                    additionalArguments: '''
-                        --project "TP-Jenkins"
-                        --scan .
-                        --format HTML
-                        --failOnCVSS 7
+                sh '''
+                    # Créer le dossier reports
+                    mkdir -p reports
+                    
+                    # Lancer OWASP Dependency-Check
+                    /opt/dependency-check/bin/dependency-check.sh \\
+                        --project "TP-Jenkins" \\
+                        --scan . \\
+                        --format HTML \\
+                        --failOnCVSS 7 \\
                         --out reports
-                    '''
+                '''
             }
             post {
                 always {
-                    dependencyCheckPublisher pattern: 'reports/dependency-check-report.xml'
+                    // Publier le rapport HTML
                     publishHTML([
                         reportDir: 'reports',
                         reportFiles: 'dependency-check-report.html',
@@ -60,6 +61,9 @@ pipeline {
                         alwaysLinkToLastBuild: true,
                         allowMissing: false
                     ])
+                    
+                    // Archiver le rapport
+                    archiveArtifacts artifacts: 'reports/dependency-check-report.html', fingerprint: true
                 }
             }
         }
