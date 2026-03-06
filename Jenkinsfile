@@ -41,13 +41,14 @@ pipeline {
                     # Créer le dossier reports
                     mkdir -p reports
                     
-                    # Lancer OWASP Dependency-Check (chemin dans le PATH)
+                    # Lancer OWASP Dependency-Check avec purge (pour réinitialiser la base)
                     /usr/local/bin/dependency-check.sh \\
                         --project "TP-Jenkins" \\
                         --scan . \\
                         --format HTML \\
                         --failOnCVSS 7 \\
-                        --out reports
+                        --out reports \\
+                        --purge
                 '''
             }
             post {
