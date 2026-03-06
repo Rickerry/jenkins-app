@@ -32,10 +32,8 @@ pipeline {
         stage('SAST Scan') {
             steps {
                 script {
-                    // Récupère le chemin du scanner installé via Tools
                     scannerHome = tool 'SonarScanner'
                 }
-                // Utilise withSonarQubeEnv si tu as configuré un serveur SonarQube
                 withSonarQubeEnv('SonarQube') {
                     sh "${scannerHome}/bin/sonar-scanner"
                 }
@@ -59,7 +57,10 @@ pipeline {
                     publishHTML([
                         reportDir: 'reports',
                         reportFiles: 'dependency-check-report.html',
-                        reportName: 'OWASP Dependency-Check Report'
+                        reportName: 'OWASP Dependency-Check Report',
+                        keepAll: true,
+                        alwaysLinkToLastBuild: true,
+                        allowMissing: false
                     ])
                 }
             }
