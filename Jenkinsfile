@@ -31,24 +31,31 @@ pipeline {
 
         stage('SAST Scan') {
             steps {
-                sh 'echo "sonar-scanner (à configurer)"'
+                script {
+                    // Récupère le chemin du scanner installé via Tools
+                    scannerHome = tool 'SonarScanner'
+                }
+                // Utilise withSonarQubeEnv si tu as configuré un serveur SonarQube
+                withSonarQubeEnv('SonarQube') {
+                    sh "${scannerHome}/bin/sonar-scanner"
+                }
             }
         }
 
         stage('SCA Scan') {
             steps {
-                sh '''
-                dependency-check.sh \\
-                  --project "TP-Jenkins" \\
-                  --scan . \\
-                  --format HTML \\
-                  --failOnCVSS 7 \\
-                  --out reports
-                '''
+                dependencyCheck odcInstallation: 'DP-Check',
+                    additionalArguments: '''
+                        --project "TP-Jenkins"
+                        --scan .
+                        --format HTML
+                        --failOnCVSS 7
+                        --out reports
+                    '''
             }
             post {
                 always {
-                    archiveArtifacts artifacts: 'reports/dependency-check-report.html', fingerprint: true
+                    dependencyCheckPublisher pattern: 'reports/dependency-check-report.xml'
                     publishHTML([
                         reportDir: 'reports',
                         reportFiles: 'dependency-check-report.html',
