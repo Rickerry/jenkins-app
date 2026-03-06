@@ -42,18 +42,14 @@ pipeline {
                     rm -rf reports
                     mkdir -p reports
                     
-                    # Forcer la sortie détaillée pour voir l'erreur
+                    # Lancer OWASP Dependency-Check SANS purge
                     /usr/local/bin/dependency-check.sh \\
                         --project "TP-Jenkins" \\
                         --scan . \\
                         --format HTML \\
                         --failOnCVSS 7 \\
                         --out reports \\
-                        --data /opt/dependency-check-final/data \\
-                        --purge 2>&1 | tee dependency-check.log
-                    
-                    # Afficher le log pour debug
-                    cat dependency-check.log
+                        --data /opt/dependency-check-final/data
                 '''
             }
             post {
@@ -70,9 +66,6 @@ pipeline {
                     
                     // Archiver le rapport s'il existe
                     archiveArtifacts artifacts: 'reports/dependency-check-report.html', fingerprint: true, allowEmptyArchive: true
-                    
-                    // Archiver le log de debug
-                    archiveArtifacts artifacts: 'dependency-check.log', fingerprint: true, allowEmptyArchive: true
                 }
             }
         }
