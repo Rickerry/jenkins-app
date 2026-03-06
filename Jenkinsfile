@@ -41,8 +41,8 @@ pipeline {
                     # Créer le dossier reports
                     mkdir -p reports
                     
-                    # Lancer OWASP Dependency-Check
-                    /opt/dependency-check/bin/dependency-check.sh \\
+                    # Lancer OWASP Dependency-Check (chemin dans le PATH)
+                    /usr/local/bin/dependency-check.sh \\
                         --project "TP-Jenkins" \\
                         --scan . \\
                         --format HTML \\
