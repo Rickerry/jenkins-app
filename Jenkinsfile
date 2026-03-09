@@ -1,7 +1,13 @@
 pipeline {
     agent any
 
+    // Déclarer les outils Jenkins
+    tools {
+        sonarQubeScanner 'sonar-scanner'   // Nom configuré dans Jenkins Global Tool Configuration
+    }
+
     stages {
+
         stage('Clone Repository') {
             steps {
                 git branch: 'main', 
@@ -15,6 +21,7 @@ pipeline {
                 sh '''
                     python3 -m venv venv
                     . venv/bin/activate
+                    pip install --upgrade pip
                     pip install -r requirements.txt
                 '''
             }
@@ -24,23 +31,31 @@ pipeline {
             steps {
                 sh '''
                     . venv/bin/activate
-                    pytest
+                    pytest --maxfail=1 --disable-warnings -q
                 '''
             }
         }
 
-      stage('SAST Scan') {
-    steps {
-        withSonarQubeEnv('SonarQube') {
-            sh '''
-                . venv/bin/activate
-                sonar-scanner \
-                -Dsonar.projectKey=jenkins-app \
-                -Dsonar.sources=.
-            '''
+        stage('SAST Scan') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                        . venv/bin/activate
+                        sonar-scanner \
+                        -Dsonar.projectKey=jenkins-app \
+                        -Dsonar.sources=.
+                    '''
+                }
+            }
         }
-    }
-}
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
 
         stage('SCA Scan') {
             steps {
@@ -49,7 +64,7 @@ pipeline {
                     rm -rf reports
                     mkdir -p reports
                     
-                    # Lancer OWASP Dependency-Check SANS purge
+                    # Lancer OWASP Dependency-Check
                     /usr/local/bin/dependency-check.sh \\
                         --project "TP-Jenkins" \\
                         --scan . \\
@@ -61,7 +76,7 @@ pipeline {
             }
             post {
                 always {
-                    // Publier le rapport HTML s'il existe
+                    // Publier le rapport HTML
                     publishHTML([
                         reportDir: 'reports',
                         reportFiles: 'dependency-check-report.html',
@@ -71,19 +86,20 @@ pipeline {
                         allowMissing: true
                     ])
                     
-                    // Archiver le rapport s'il existe
+                    // Archiver le rapport
                     archiveArtifacts artifacts: 'reports/dependency-check-report.html', fingerprint: true, allowEmptyArchive: true
                 }
             }
         }
+
     }
 
     post {
-        failure {
-            echo '❌ Le pipeline a échoué !'
-        }
         success {
             echo '✅ Pipeline exécuté avec succès !'
+        }
+        failure {
+            echo '❌ Le pipeline a échoué !'
         }
     }
 }
