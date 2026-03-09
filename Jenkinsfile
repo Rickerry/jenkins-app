@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    
+
     stages {
         stage('Clone Repository') {
             steps {
@@ -9,7 +9,7 @@ pipeline {
                     credentialsId: 'github-token'
             }
         }
-        
+
         stage('Install Dependencies') {
             steps {
                 sh '''
@@ -20,7 +20,7 @@ pipeline {
                 '''
             }
         }
-        
+
         stage('Run Tests') {
             steps {
                 sh '''
@@ -29,25 +29,23 @@ pipeline {
                 '''
             }
         }
-        
+
         stage('SAST Scan') {
             steps {
                 script {
                     // Récupère le chemin du scanner SonarQube configuré dans Jenkins
-                    scannerHome = tool name: 'sonar-scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-                }
-                
-                withSonarQubeEnv('SonarQube') {
-                    sh '''
-                        ${scannerHome}/bin/sonar-scanner \
-                        -Dsonar.projectKey=jenkins-app \
-                        -Dsonar.sources=. \
-                        -Dsonar.exclusions=venv/**,reports/**,**/__pycache__/**
-                    '''
+                    def scannerHome = tool name: 'sonar-scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+
+                    withSonarQubeEnv('SonarQube') {
+                        sh """${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=jenkins-app \
+                            -Dsonar.sources=. \
+                            -Dsonar.exclusions=venv/**,reports/**,**/__pycache__/**"""
+                    }
                 }
             }
         }
-        
+
         stage('Quality Gate') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
@@ -55,7 +53,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('SCA Scan') {
             steps {
                 sh '''
@@ -85,12 +83,10 @@ pipeline {
             }
         }
     }
-    
+
     post {
         success { echo '✅ Pipeline exécuté avec succès !' }
         failure { echo '❌ Le pipeline a échoué !' }
-        always {
-            cleanWs()
-        }
+        always { cleanWs() }
     }
 }
