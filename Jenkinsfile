@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', 
+                git branch: 'main',
                     url: 'https://github.com/Rickerry/jenkins-app.git',
                     credentialsId: 'github-token'
             }
@@ -15,6 +15,7 @@ pipeline {
                 sh '''
                     python3 -m venv venv
                     . venv/bin/activate
+                    pip install --upgrade pip
                     pip install -r requirements.txt
                 '''
             }
@@ -24,16 +25,16 @@ pipeline {
             steps {
                 sh '''
                     . venv/bin/activate
-                    pytest
+                    pytest --maxfail=1 --disable-warnings -q
                 '''
             }
         }
 
         stage('SAST Scan') {
             steps {
+                // Exécution du scanner SonarQube
                 withSonarQubeEnv('SonarQube') {
                     sh '''
-                        . venv/bin/activate
                         sonar-scanner \
                         -Dsonar.projectKey=jenkins-app \
                         -Dsonar.sources=.
@@ -42,14 +43,19 @@ pipeline {
             }
         }
 
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
         stage('SCA Scan') {
             steps {
                 sh '''
-                    # Nettoyer l'ancien dossier reports
                     rm -rf reports
                     mkdir -p reports
-                    
-                    # Lancer OWASP Dependency-Check SANS purge
                     /usr/local/bin/dependency-check.sh \\
                         --project "TP-Jenkins" \\
                         --scan . \\
@@ -61,7 +67,6 @@ pipeline {
             }
             post {
                 always {
-                    // Publier le rapport HTML s'il existe
                     publishHTML([
                         reportDir: 'reports',
                         reportFiles: 'dependency-check-report.html',
@@ -70,20 +75,15 @@ pipeline {
                         alwaysLinkToLastBuild: true,
                         allowMissing: true
                     ])
-                    
-                    // Archiver le rapport s'il existe
                     archiveArtifacts artifacts: 'reports/dependency-check-report.html', fingerprint: true, allowEmptyArchive: true
                 }
             }
         }
+
     }
 
     post {
-        failure {
-            echo '❌ Le pipeline a échoué !'
-        }
-        success {
-            echo '✅ Pipeline exécuté avec succès !'
-        }
+        success { echo '✅ Pipeline exécuté avec succès !' }
+        failure { echo '❌ Le pipeline a échoué !' }
     }
 }
