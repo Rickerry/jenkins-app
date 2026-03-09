@@ -34,7 +34,7 @@ pipeline {
             steps {
                 script {
                     // Récupère le chemin du scanner SonarQube configuré dans Jenkins
-                    scannerHome = tool name: 'SonarQube', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                    scannerHome = tool name: 'sonar-scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
                 }
                 
                 withSonarQubeEnv('SonarQube') {
