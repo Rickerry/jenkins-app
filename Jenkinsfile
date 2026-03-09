@@ -29,11 +29,20 @@ pipeline {
             }
         }
 
-        stage('SAST Scan') {
-            steps {
-                sh 'echo "SAST Scan désactivé - installation de SonarQube requise"'
-            }
+       stage('SAST Scan') {
+    steps {
+        withSonarQubeEnv('SonarQube') {
+            sh '''
+                . venv/bin/activate
+                sonar-scanner \
+                -Dsonar.projectKey=jenkins-app \
+                -Dsonar.sources=. \
+                -Dsonar.host.url=http://localhost:9000 \
+                -Dsonar.login=$SONAR_AUTH_TOKEN
+            '''
         }
+    }
+}
 
         stage('SCA Scan') {
             steps {
