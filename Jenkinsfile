@@ -2,8 +2,8 @@ pipeline {
     agent any
     
     tools {
-        // Le nom à gauche doit être 'sonarRunner' ou le nom complet de la classe
-        sonarRunner 'SonarQube'  // 'SonarQube' est le nom configuré dans Global Tool Configuration
+        // Utilisation du nom complet de la classe comme indiqué dans l'erreur
+        hudson.plugins.sonar.SonarRunnerInstallation 'SonarQube'
     }
     
     stages {
@@ -77,20 +77,3 @@ pipeline {
                         reportFiles: 'dependency-check-report.html',
                         reportName: 'OWASP Dependency-Check Report',
                         keepAll: true,
-                        alwaysLinkToLastBuild: true,
-                        allowMissing: true
-                    ])
-                    archiveArtifacts artifacts: 'reports/dependency-check-report.html', fingerprint: true, allowEmptyArchive: true
-                }
-            }
-        }
-    }
-    
-    post {
-        success { echo '✅ Pipeline exécuté avec succès !' }
-        failure { echo '❌ Le pipeline a échoué !' }
-        always {
-            cleanWs()
-        }
-    }
-}
