@@ -1,9 +1,9 @@
 pipeline {
     agent any
     
-    environment {
-        // Optionnel : définir des variables d'environnement
-        SONAR_PROJECT_KEY = 'jenkins-app'
+    tools {
+        // Utilisez le NOM EXACT configuré dans Global Tool Configuration
+        sonarQube 'SonarQube'  // Remplacez par le nom que vous avez configuré
     }
     
     stages {
@@ -37,14 +37,9 @@ pipeline {
         
         stage('SAST Scan') {
             steps {
-                // Récupération explicite du scanner configuré dans Global Tool Configuration
-                script {
-                    scannerHome = tool name: 'SonarQubeScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-                }
-                
                 withSonarQubeEnv('SonarQube') {
                     sh '''
-                        ${scannerHome}/bin/sonar-scanner \
+                        sonar-scanner \
                         -Dsonar.projectKey=jenkins-app \
                         -Dsonar.sources=. \
                         -Dsonar.exclusions=venv/**,reports/**,**/__pycache__/**
@@ -94,5 +89,8 @@ pipeline {
     post {
         success { echo '✅ Pipeline exécuté avec succès !' }
         failure { echo '❌ Le pipeline a échoué !' }
+        always {
+            cleanWs()
+        }
     }
 }
