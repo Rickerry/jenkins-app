@@ -31,22 +31,22 @@ pipeline {
         }
 
         stage('SAST Scan') {
-    steps {
-        script {
-            def scannerHome = tool name: 'sonar-scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-            
-            withSonarQubeEnv('SonarQube') {
-                sh """
-                    ${scannerHome}/bin/sonar-scanner \
-                        -Dsonar.projectKey=jenkins-app \
-                        -Dsonar.sources=. \
-                        -Dsonar.exclusions=venv/**,reports/**,**/__pycache__/** \
-                        -Dsonar.host.url=http://localhost:9000
-                """
+            steps {
+                script {
+                    def scannerHome = tool name: 'sonar-scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                    
+                    withSonarQubeEnv('SonarQube') {
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner \
+                                -Dsonar.projectKey=jenkins-app \
+                                -Dsonar.sources=. \
+                                -Dsonar.exclusions=venv/**,reports/**,**/__pycache__/** \
+                                -Dsonar.host.url=http://localhost:9000
+                        """
+                    }
+                }
             }
         }
-    }
-}
 
         stage('Quality Gate') {
             steps {
