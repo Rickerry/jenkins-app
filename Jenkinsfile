@@ -1,6 +1,11 @@
 pipeline {
     agent any
-
+    
+    environment {
+        // Optionnel : définir des variables d'environnement
+        SONAR_PROJECT_KEY = 'jenkins-app'
+    }
+    
     stages {
         stage('Clone Repository') {
             steps {
@@ -9,7 +14,7 @@ pipeline {
                     credentialsId: 'github-token'
             }
         }
-
+        
         stage('Install Dependencies') {
             steps {
                 sh '''
@@ -20,7 +25,7 @@ pipeline {
                 '''
             }
         }
-
+        
         stage('Run Tests') {
             steps {
                 sh '''
@@ -29,20 +34,25 @@ pipeline {
                 '''
             }
         }
-
+        
         stage('SAST Scan') {
             steps {
-                // Exécution du scanner SonarQube
+                // Récupération explicite du scanner configuré dans Global Tool Configuration
+                script {
+                    scannerHome = tool name: 'SonarQubeScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                }
+                
                 withSonarQubeEnv('SonarQube') {
                     sh '''
-                        sonar-scanner \
+                        ${scannerHome}/bin/sonar-scanner \
                         -Dsonar.projectKey=jenkins-app \
-                        -Dsonar.sources=.
+                        -Dsonar.sources=. \
+                        -Dsonar.exclusions=venv/**,reports/**,**/__pycache__/**
                     '''
                 }
             }
         }
-
+        
         stage('Quality Gate') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
@@ -50,7 +60,7 @@ pipeline {
                 }
             }
         }
-
+        
         stage('SCA Scan') {
             steps {
                 sh '''
@@ -79,9 +89,8 @@ pipeline {
                 }
             }
         }
-
     }
-
+    
     post {
         success { echo '✅ Pipeline exécuté avec succès !' }
         failure { echo '❌ Le pipeline a échoué !' }
