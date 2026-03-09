@@ -2,8 +2,8 @@ pipeline {
     agent any
     
     tools {
-        // Utilisez le NOM EXACT configuré dans Global Tool Configuration
-        sonarQube 'SonarQube'  // Remplacez par le nom que vous avez configuré
+        // Le nom à gauche doit être 'sonarRunner' ou le nom complet de la classe
+        sonarRunner 'SonarQube'  // 'SonarQube' est le nom configuré dans Global Tool Configuration
     }
     
     stages {
