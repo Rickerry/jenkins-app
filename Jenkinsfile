@@ -41,7 +41,7 @@ pipeline {
                                 -Dsonar.projectKey=jenkins-app \
                                 -Dsonar.sources=. \
                                 -Dsonar.exclusions=venv/**,reports/**,**/__pycache__/** \
-                                -Dsonar.host.url=http://localhost:9000
+                                -Dsonar.host.url=http://192.168.56.1:9000
                         """
                     }
                 }
