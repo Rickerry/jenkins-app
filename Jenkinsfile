@@ -29,16 +29,14 @@ pipeline {
             }
         }
 
-       stage('SAST Scan') {
+      stage('SAST Scan') {
     steps {
         withSonarQubeEnv('SonarQube') {
             sh '''
                 . venv/bin/activate
                 sonar-scanner \
                 -Dsonar.projectKey=jenkins-app \
-                -Dsonar.sources=. \
-                -Dsonar.host.url=http://localhost:9000 \
-                -Dsonar.login=$SONAR_AUTH_TOKEN
+                -Dsonar.sources=.
             '''
         }
     }
