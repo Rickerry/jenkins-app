@@ -1,11 +1,6 @@
 pipeline {
     agent any
     
-    tools {
-        // Utilisation du nom complet de la classe comme indiqué dans l'erreur
-        hudson.plugins.sonar.SonarRunnerInstallation 'SonarQube'
-    }
-    
     stages {
         stage('Clone Repository') {
             steps {
@@ -37,9 +32,14 @@ pipeline {
         
         stage('SAST Scan') {
             steps {
+                script {
+                    // Récupère le chemin du scanner SonarQube configuré dans Jenkins
+                    scannerHome = tool name: 'SonarQube', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                }
+                
                 withSonarQubeEnv('SonarQube') {
                     sh '''
-                        sonar-scanner \
+                        ${scannerHome}/bin/sonar-scanner \
                         -Dsonar.projectKey=jenkins-app \
                         -Dsonar.sources=. \
                         -Dsonar.exclusions=venv/**,reports/**,**/__pycache__/**
@@ -77,3 +77,20 @@ pipeline {
                         reportFiles: 'dependency-check-report.html',
                         reportName: 'OWASP Dependency-Check Report',
                         keepAll: true,
+                        alwaysLinkToLastBuild: true,
+                        allowMissing: true
+                    ])
+                    archiveArtifacts artifacts: 'reports/dependency-check-report.html', fingerprint: true, allowEmptyArchive: true
+                }
+            }
+        }
+    }
+    
+    post {
+        success { echo '✅ Pipeline exécuté avec succès !' }
+        failure { echo '❌ Le pipeline a échoué !' }
+        always {
+            cleanWs()
+        }
+    }
+}
